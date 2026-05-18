@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>COLORada — Registro de Atención</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0A0A0A;font-family:Arial,sans-serif;min-height:100vh;padding:16px 12px 48px}
+.wrap{max-width:420px;margin:0 auto}
+.logo-header{text-align:center;padding:28px 0 20px}
+.logo-title{font-size:32px;font-weight:700;letter-spacing:2px;line-height:1}
+.logo-title .c1{color:#F5C842}
+.logo-title .c2{color:#5BAD7F}
+.logo-title .c3{color:#E85D5D}
+.logo-title .c4{color:#8B7EC8}
+.logo-title .c5{color:#5BC4E8}
+.logo-title .c6{color:#fff;font-style:italic}
+.logo-sub{font-size:10px;color:#E85D5D;letter-spacing:4px;margin-top:6px}
+.progress{display:flex;gap:4px;margin-bottom:20px}
+.prog-step{flex:1;height:3px;border-radius:2px;background:#222;transition:background 0.3s}
+.prog-step.done{background:#F5C842}
+.prog-step.active{background:#fff}
+.step{display:none}
+.step.active{display:block}
+.block{background:#141414;border:0.5px solid #2A2A2A;border-radius:14px;padding:20px 16px;margin-bottom:14px}
+.block-title{font-size:10px;letter-spacing:3px;margin-bottom:14px}
+.label{font-size:13px;color:#888;margin-bottom:6px}
+.field{width:100%;background:#0A0A0A;border:0.5px solid #333;border-radius:10px;padding:12px 14px;font-size:14px;color:#fff;outline:none;font-family:Arial,sans-serif}
+.field:focus{border-color:#F5C842}
+select.field option{background:#141414;color:#fff}
+.radio-group{display:flex;gap:8px}
+.radio-btn{flex:1;padding:11px 8px;background:#0A0A0A;border:0.5px solid #333;border-radius:10px;font-size:13px;color:#888;cursor:pointer;text-align:center;transition:all 0.15s}
+.radio-btn.sel{border-color:#F5C842;color:#F5C842;background:#1A1700}
+.new-client-box{margin-top:10px;display:none}
+.cat-title{font-size:10px;font-weight:700;letter-spacing:2px;margin:14px 0 8px}
+.cb-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.cb-item{display:flex;align-items:center;gap:8px;background:#0A0A0A;border:0.5px solid #2A2A2A;border-radius:9px;padding:10px 11px;cursor:pointer;transition:all 0.15s;user-select:none}
+.cb-item.checked{border-color:var(--cat-color);background:var(--cat-bg)}
+.cb-item input{display:none}
+.cb-box{width:16px;height:16px;border:1.5px solid #444;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.cb-item.checked .cb-box{background:var(--cat-color);border-color:var(--cat-color)}
+.cb-check{display:none;width:10px;height:10px}
+.cb-item.checked .cb-check{display:block;fill:#000}
+.cb-label{font-size:13px;color:#888;transition:color 0.15s}
+.cb-item.checked .cb-label{color:#fff}
+.monto-wrap{position:relative}
+.monto-prefix{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#888;font-size:14px}
+.monto-input{padding-left:30px!important}
+.pay-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:6px}
+.pay-btn{padding:11px 8px;background:#0A0A0A;border:0.5px solid #333;border-radius:10px;font-size:13px;color:#888;cursor:pointer;text-align:center;transition:all 0.15s}
+.pay-btn.sel{border-color:#5BC4E8;color:#5BC4E8;background:#001820}
+textarea.field{resize:none;min-height:80px}
+.btn-next{width:100%;padding:15px;background:#F5C842;color:#000;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-top:6px;transition:opacity 0.15s}
+.btn-next:disabled{opacity:0.3;cursor:not-allowed}
+.btn-back{width:100%;padding:13px;background:transparent;color:#555;border:0.5px solid #2A2A2A;border-radius:12px;font-size:14px;cursor:pointer;margin-top:8px}
+.btn-back:hover{color:#888;border-color:#444}
+.success-wrap{text-align:center;padding:32px 0}
+.success-icon{font-size:56px;margin-bottom:16px}
+.success-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:8px}
+.success-sub{font-size:14px;color:#666;line-height:1.7;margin-bottom:24px}
+.btn-nuevo{width:100%;padding:15px;background:#141414;color:#F5C842;border:1px solid #F5C842;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:1px}
+.sending-wrap{text-align:center;padding:40px 0}
+.spinner{width:36px;height:36px;border:3px solid #222;border-top-color:#F5C842;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.err{background:#1A0000;border:0.5px solid #A32D2D;border-radius:10px;padding:12px 14px;font-size:13px;color:#F09595;margin-bottom:12px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+ 
+<div class="logo-header">
+  <div class="logo-title">
+    <span class="c1">C</span><span class="c2">O</span><span class="c3">L</span><span class="c4">O</span><span class="c5">R</span><span class="c6">ada</span>
+  </div>
+  <div class="logo-sub">EXPERTOS EN COLOR</div>
+</div>
+ 
+<div class="progress">
+  <div class="prog-step active" id="ps1"></div>
+  <div class="prog-step" id="ps2"></div>
+  <div class="prog-step" id="ps3"></div>
+  <div class="prog-step" id="ps4"></div>
+</div>
+ 
+<!-- PASO 1: CLIENTA -->
+<div class="step active" id="s1">
+  <div class="block">
+    <div class="block-title" style="color:#F5C842">PASO 1 DE 4 — CLIENTA</div>
+ 
+    <div class="label">¿Es clienta frecuente o nueva?</div>
+    <div class="radio-group" style="margin-bottom:14px">
+      <div class="radio-btn sel" id="rb-frecuente" onclick="setTipo('frecuente')">Frecuente</div>
+      <div class="radio-btn" id="rb-nueva" onclick="setTipo('nueva')">Nueva</div>
+    </div>
+ 
+    <div id="box-frecuente">
+      <div class="label">Selecciona la clienta</div>
+      <select class="field" id="sel-clienta">
+        <option value="">— Elige un nombre —</option>
+      </select>
+    </div>
+ 
+    <div class="new-client-box" id="box-nueva">
+      <div class="label">Nombre de la clienta nueva</div>
+      <input class="field" type="text" id="inp-nueva" placeholder="Escribe el nombre completo" oninput="checkStep1()">
+    </div>
+  </div>
+  <button class="btn-next" id="btn1" disabled onclick="goTo(2)">Siguiente →</button>
+</div>
+ 
+<!-- PASO 2: CABELLO -->
+<div class="step" id="s2">
+  <div class="block">
+    <div class="block-title" style="color:#5BAD7F">PASO 2 DE 4 — CABELLO</div>
+ 
+    <div class="label">Largo del cabello</div>
+    <div class="radio-group" style="margin-bottom:14px">
+      <div class="radio-btn" onclick="setLargo(this,'Corto')">Corto</div>
+      <div class="radio-btn" onclick="setLargo(this,'Medio')">Medio</div>
+      <div class="radio-btn" onclick="setLargo(this,'Largo')">Largo</div>
+      <div class="radio-btn" onclick="setLargo(this,'XL')">XL</div>
+    </div>
+ 
+    <div class="label">Tipo de cabello</div>
+    <div class="radio-group" style="margin-bottom:14px">
+      <div class="radio-btn" onclick="setTipo2(this,'Liso')">Liso</div>
+      <div class="radio-btn" onclick="setTipo2(this,'Ondulado')">Ondulado</div>
+      <div class="radio-btn" onclick="setTipo2(this,'Rizado')">Rizado</div>
+    </div>
+ 
+    <div class="label">Color del cabello</div>
+    <input class="field" type="text" id="inp-color" placeholder="Ej: castaño oscuro, rubio, negro..." oninput="checkStep2()">
+  </div>
+  <button class="btn-next" id="btn2" disabled onclick="goTo(3)">Siguiente →</button>
+  <button class="btn-back" onclick="goTo(1)">← Volver</button>
+</div>
+ 
+<!-- PASO 3: SERVICIOS -->
+<div class="step" id="s3">
+  <div class="block">
+    <div class="block-title" style="color:#E85D5D">PASO 3 DE 4 — SERVICIOS</div>
+ 
+    <div class="cat-title" style="color:#F5C842">LAVADO Y STYLING</div>
+    <div class="cb-grid" style="--cat-color:#F5C842;--cat-bg:#1A1700">
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Lavado"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Lavado</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Cepillado"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Cepillado</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Planchado"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Planchado</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Peinado"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Peinado</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Corte"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Corte</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Ondulación"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Ondulación</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Laceado"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Laceado</span></label>
+    </div>
+ 
+    <div class="cat-title" style="color:#E85D5D">COLOR</div>
+    <div class="cb-grid" style="--cat-color:#E85D5D;--cat-bg:#1A0000">
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Tinte completo"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Tinte completo</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Retoque raíz"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Retoque raíz</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Mechas"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Mechas</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Balayage"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Balayage</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Iluminación"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Iluminación</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Decoloración"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Decoloración</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Baño de color"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Baño de color</span></label>
+    </div>
+ 
+    <div class="cat-title" style="color:#5BAD7F">TRATAMIENTOS</div>
+    <div class="cb-grid" style="--cat-color:#5BAD7F;--cat-bg:#001A08">
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Keratina"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Keratina</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Ampolla"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Ampolla</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Mascarilla"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Mascarilla</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Hidratación"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Hidratación</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Anticaída"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Anticaída</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Reconstructor"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Reconstructor</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Chocolate/Café"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Chocolate/Café</span></label>
+    </div>
+ 
+    <div class="cat-title" style="color:#5BC4E8">UÑAS Y OTROS</div>
+    <div class="cb-grid" style="--cat-color:#5BC4E8;--cat-bg:#001520">
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Manicure"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Manicure</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Pedicure"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Pedicure</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Cambio esmalte"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Cambio esmalte</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Depilación"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Depilación</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Maquillaje"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Maquillaje</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Trenza/Recogido"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Trenza/Recogido</span></label>
+      <label class="cb-item" onclick="toggleCb(this)"><input type="checkbox" value="Venta producto"><div class="cb-box"><svg class="cb-check" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#000" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><span class="cb-label">Venta producto</span></label>
+    </div>
+ 
+    <div class="cat-title" style="color:#8B7EC8">OTROS</div>
+    <input class="field" type="text" id="inp-otros" placeholder="Describe cualquier otro servicio...">
+  </div>
+  <button class="btn-next" onclick="goTo(4)">Siguiente →</button>
+  <button class="btn-back" onclick="goTo(2)">← Volver</button>
+</div>
+ 
+<!-- PASO 4: COBRO -->
+<div class="step" id="s4">
+  <div class="block">
+    <div class="block-title" style="color:#5BC4E8">PASO 4 DE 4 — COBRO</div>
+ 
+    <div class="label">Monto cobrado</div>
+    <div class="monto-wrap" style="margin-bottom:16px">
+      <span class="monto-prefix">S/</span>
+      <input class="field monto-input" type="number" id="inp-monto" placeholder="0" min="0" oninput="checkStep4()">
+    </div>
+ 
+    <div class="label">Forma de pago</div>
+    <div class="pay-grid">
+      <div class="pay-btn" onclick="setPago(this,'Efectivo')">Efectivo</div>
+      <div class="pay-btn" onclick="setPago(this,'Yape Leyla')">Yape Leyla</div>
+      <div class="pay-btn" onclick="setPago(this,'Yape Pierre')">Yape Pierre</div>
+      <div class="pay-btn" onclick="setPago(this,'Yape Ada')">Yape Ada</div>
+    </div>
+  </div>
+ 
+  <div class="block" style="margin-top:0">
+    <div class="label" style="margin-bottom:8px">Observaciones (opcional)</div>
+    <textarea class="field" id="inp-obs" placeholder="Anotaciones sobre el servicio, el cabello, próxima cita..."></textarea>
+  </div>
+ 
+  <div class="err" id="errMsg">Hubo un error al enviar. Intenta de nuevo.</div>
+  <button class="btn-next" id="btn4" disabled onclick="enviar()">Registrar atención ✓</button>
+  <button class="btn-back" onclick="goTo(3)">← Volver</button>
+</div>
+ 
+<!-- ENVIANDO -->
+<div class="step" id="s-sending">
+  <div class="sending-wrap">
+    <div class="spinner"></div>
+    <p style="color:#888;font-size:14px">Guardando registro...</p>
+  </div>
+</div>
+ 
+<!-- ÉXITO -->
+<div class="step" id="s-ok">
+  <div class="success-wrap">
+    <div class="success-icon">✅</div>
+    <div class="success-title">¡Registrado!</div>
+    <div class="success-sub" id="success-msg">La atención quedó guardada correctamente.</div>
+    <button class="btn-nuevo" onclick="resetForm()">+ Registrar otra clienta</button>
+  </div>
+</div>
+ 
+</div>
+ 
+<script>
+const SCRIPT_URL = 'PEGAR_URL_DE_GOOGLE_APPS_SCRIPT_AQUI';
+ 
+const CLIENTAS = ['Ada Aguinaga','Ana','Ana María','Ana Marilu','Ana Tello','Araceli','Aurora','Berenice','Blanca','Brenda','Carmen','Carmen Torres','Carolina','Carmela','Carla','Cecilia','Charo','Claudia','Connie','Consuelo','Doctora','Doroty','Elena','Elisabeth','Elva','Genoveva','Gloria','Gracia','Itica','Janeth','Jhet','Johani','Josefina','Ladit','Leonor','Liliana','Lizana','Lourdes','Lucy','Luisa','Mari Carmen','María Elena','Mariaelena','Marielena','Maricarmen','Mariela','Marisol','Marita','Marilu','Meri','Mery','Milagros','Miriam','Mirian','Mossi','Natalia','Paloma','Patricia','Paty Chiclayo','Paty Gutiérrez','Paula','Pelusa','Rosa','Rossana','Sarita','Serena','Sofia','Soledad','Tamy','Vilma','Yanet','Yaqui','Yoselin','Yuli Ríos','Yuly'];
+ 
+let formData = {tipo:'frecuente',nombre:'',largo:'',tipoCabello:'',colorCabello:'',servicios:[],otros:'',monto:'',pago:'',obs:''};
+ 
+function init(){
+  const sel=document.getElementById('sel-clienta');
+  CLIENTAS.sort().forEach(n=>{
+    const o=document.createElement('option');
+    o.value=o.textContent=n; sel.appendChild(o);
+  });
+  sel.addEventListener('change',()=>{formData.nombre=sel.value;checkStep1();});
+}
+ 
+function setTipo(t){
+  formData.tipo=t;
+  document.getElementById('rb-frecuente').classList.toggle('sel',t==='frecuente');
+  document.getElementById('rb-nueva').classList.toggle('sel',t==='nueva');
+  document.getElementById('box-frecuente').style.display=t==='frecuente'?'block':'none';
+  document.getElementById('box-nueva').style.display=t==='nueva'?'block':'none';
+  if(t==='frecuente'){formData.nombre=document.getElementById('sel-clienta').value;}
+  else{formData.nombre=document.getElementById('inp-nueva').value;}
+  checkStep1();
+}
+ 
+function checkStep1(){
+  if(formData.tipo==='frecuente') formData.nombre=document.getElementById('sel-clienta').value;
+  else formData.nombre=document.getElementById('inp-nueva').value.trim();
+  document.getElementById('btn1').disabled=!formData.nombre;
+}
+ 
+function setLargo(el,val){
+  document.querySelectorAll('#s2 .radio-group:nth-of-type(1) .radio-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); formData.largo=val; checkStep2();
+}
+function setTipo2(el,val){
+  document.querySelectorAll('#s2 .radio-group:nth-of-type(2) .radio-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); formData.tipoCabello=val; checkStep2();
+}
+function checkStep2(){
+  formData.colorCabello=document.getElementById('inp-color').value.trim();
+  document.getElementById('btn2').disabled=!(formData.largo&&formData.tipoCabello&&formData.colorCabello);
+}
+ 
+function toggleCb(el){
+  el.classList.toggle('checked');
+  const cb=el.querySelector('input[type=checkbox]');
+  cb.checked=!cb.checked;
+  formData.servicios=Array.from(document.querySelectorAll('#s3 input[type=checkbox]:checked')).map(c=>c.value);
+}
+ 
+function setPago(el,val){
+  document.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); formData.pago=val; checkStep4();
+}
+function checkStep4(){
+  formData.monto=document.getElementById('inp-monto').value;
+  document.getElementById('btn4').disabled=!(formData.monto&&formData.pago);
+}
+ 
+function goTo(n){
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  ['ps1','ps2','ps3','ps4'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.classList.remove('done','active');
+    if(i+1<n) el.classList.add('done');
+    else if(i+1===n) el.classList.add('active');
+  });
+  window.scrollTo(0,0);
+}
+ 
+function enviar(){
+  formData.otros=document.getElementById('inp-otros').value;
+  formData.obs=document.getElementById('inp-obs').value;
+  formData.fecha=new Date().toLocaleString('es-PE',{timeZone:'America/Lima'});
+  formData.esNueva=formData.tipo==='nueva';
+ 
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-sending').classList.add('active');
+ 
+  const payload={...formData, servicios:formData.servicios.join(', ')};
+ 
+  fetch(SCRIPT_URL,{
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(()=>{
+    if(formData.esNueva&&formData.nombre){
+      CLIENTAS.push(formData.nombre);
+      const sel=document.getElementById('sel-clienta');
+      const o=document.createElement('option');
+      o.value=o.textContent=formData.nombre; sel.appendChild(o);
+    }
+    document.getElementById('success-msg').textContent=
+      `${formData.nombre} — S/${formData.monto} — ${formData.pago}`;
+    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    document.getElementById('s-ok').classList.add('active');
+  }).catch(()=>{
+    document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+    document.getElementById('s4').classList.add('active');
+    document.getElementById('errMsg').style.display='block';
+  });
+}
+ 
+function resetForm(){
+  formData={tipo:'frecuente',nombre:'',largo:'',tipoCabello:'',colorCabello:'',servicios:[],otros:'',monto:'',pago:'',obs:''};
+  document.querySelectorAll('.cb-item').forEach(el=>{el.classList.remove('checked');el.querySelector('input').checked=false;});
+  document.querySelectorAll('.radio-btn').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('rb-frecuente').classList.add('sel');
+  document.getElementById('box-frecuente').style.display='block';
+  document.getElementById('box-nueva').style.display='none';
+  document.getElementById('sel-clienta').value='';
+  document.getElementById('inp-nueva').value='';
+  document.getElementById('inp-color').value='';
+  document.getElementById('inp-monto').value='';
+  document.getElementById('inp-otros').value='';
+  document.getElementById('inp-obs').value='';
+  document.getElementById('errMsg').style.display='none';
+  document.getElementById('btn1').disabled=true;
+  document.getElementById('btn2').disabled=true;
+  document.getElementById('btn4').disabled=true;
+  goTo(1);
+}
+ 
+init();
+</script>
+</body>
+</html>
