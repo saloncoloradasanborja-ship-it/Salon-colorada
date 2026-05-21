@@ -280,7 +280,7 @@ textarea:focus{border-color:#F5C842}
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwqebcpnOcTfFafh90jxGHTW30hkTCeBLwLUuDFhw5a_sZt7OCHo4JcqDIpEiVqOgCGhg/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5vePO987aeJc0TtMy7SKWT1DLQNeBD3HuKojI_JvA4qhCvQURobDaDcfeB2U8KPXSRg/exec';
 const lbls = ['','Muy malo','Malo','Regular','Bueno','Excelente'];
 const data = {tipoCliente:'frecuente',calidad:0,trato:0,limpieza:0,precio:'',espera:'',recomendaria:'',comentario:''};
 
@@ -339,10 +339,14 @@ function enviar(){
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('s-sending').classList.add('active');
 
+  const payload = {...data, fechaVencimiento:fechaVenc, codigoCupon:codigo};
+  const params = new URLSearchParams();
+  Object.keys(payload).forEach(k => params.append(k, String(payload[k])));
+
   fetch(SCRIPT_URL,{
     method:'POST', mode:'no-cors',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({...data, fechaVencimiento:fechaVenc, codigoCupon:codigo})
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body: params.toString()
   }).then(()=>{
     document.getElementById('fecha-venc').textContent=fechaVenc;
     document.getElementById('coupon-code').textContent=codigo;
